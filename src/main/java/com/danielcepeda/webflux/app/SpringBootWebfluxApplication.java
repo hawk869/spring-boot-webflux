@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
@@ -14,10 +15,13 @@ public class SpringBootWebfluxApplication implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SpringBootWebfluxApplication.class);
     private final ProductDao productDao;
+    private final ReactiveMongoTemplate mongoTemplate;
 
-    public SpringBootWebfluxApplication(ProductDao productDao) {
+    public SpringBootWebfluxApplication(ProductDao productDao, ReactiveMongoTemplate mongoTemplate) {
         this.productDao = productDao;
+        this.mongoTemplate = mongoTemplate;
     }
+
 
     public static void main(String[] args) {
         SpringApplication.run(SpringBootWebfluxApplication.class, args);
@@ -25,6 +29,8 @@ public class SpringBootWebfluxApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+
+        mongoTemplate.dropCollection("products").subscribe();
 
         Flux.just(new Product("TV Panasonic Pantalla LCD", 456.89),
                 new Product("Sony Camara", 177.89),
