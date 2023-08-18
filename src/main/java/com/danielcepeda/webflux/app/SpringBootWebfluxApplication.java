@@ -10,6 +10,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import reactor.core.publisher.Flux;
 
+import java.util.Date;
+
 @SpringBootApplication
 public class SpringBootWebfluxApplication implements CommandLineRunner {
 
@@ -42,8 +44,11 @@ public class SpringBootWebfluxApplication implements CommandLineRunner {
                 new Product("MacBook Air M2", 1256.89),
                 new Product("iPhone 14 Pro", 1446.89)
         )
-                .flatMap(productDao::save)
-//                .flatMap(product -> productDao.save(product))
+//                .flatMap(productDao::save)
+                .flatMap(product -> {
+                    product.setCreateAt(new Date());
+                    return productDao.save(product);
+                })
                 .subscribe(product -> log.info("Insert: " + product.getId() + product.getName()));
     }
 }
