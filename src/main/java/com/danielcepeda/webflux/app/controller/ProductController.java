@@ -7,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
+
+import java.time.Duration;
 
 @Controller
 public class ProductController {
@@ -28,6 +31,19 @@ public class ProductController {
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", products);
+        model.addAttribute("titulo", "Listado de productos");
+        return "listar";
+    }
+    @GetMapping("/listar-datadriver")
+    public String getDataDriver(Model model) {
+
+        Flux<Product> products = dao.findAll().map(product -> {
+            product.setName(product.getName().toUpperCase());
+            return product;
+        }).delayElements(Duration.ofSeconds(1));
+        products.subscribe(product -> log.info(product.getName()));
+
+        model.addAttribute("productos", new ReactiveDataDriverContextVariable(products,2));
         model.addAttribute("titulo", "Listado de productos");
         return "listar";
     }
