@@ -1,7 +1,7 @@
 package com.danielcepeda.webflux.app.controller;
 
-import com.danielcepeda.webflux.app.models.dao.ProductDao;
 import com.danielcepeda.webflux.app.models.documents.Product;
+import com.danielcepeda.webflux.app.models.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -15,19 +15,16 @@ import java.time.Duration;
 @Controller
 public class ProductController {
 
-    private final ProductDao dao;
+    private final ProductService service;
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
-    public ProductController(ProductDao dao) {
-        this.dao = dao;
+    public ProductController(ProductService service) {
+        this.service = service;
     }
 
     @GetMapping({"/listar", "/"})
     public String getProducts(Model model) {
 
-        Flux<Product> products = dao.findAll().map(product -> {
-                product.setName(product.getName().toUpperCase());
-                return product;
-        });
+        Flux<Product> products = service.findAllByNameUpperCase();
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", products);
@@ -37,10 +34,7 @@ public class ProductController {
     @GetMapping("/listar-datadriver")
     public String getDataDriver(Model model) {
 
-        Flux<Product> products = dao.findAll().map(product -> {
-            product.setName(product.getName().toUpperCase());
-            return product;
-        }).delayElements(Duration.ofSeconds(1));
+        Flux<Product> products = service.findAllByNameUpperCase().delayElements(Duration.ofSeconds(1));
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", new ReactiveDataDriverContextVariable(products,2));
@@ -50,10 +44,7 @@ public class ProductController {
     @GetMapping("/listar-full")
     public String getFullProducts(Model model) {
 
-        Flux<Product> products = dao.findAll().map(product -> {
-            product.setName(product.getName().toUpperCase());
-            return product;
-        }).repeat(5000);
+        Flux<Product> products = service.findAllByNameUpperCaseRepeat();
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", products);
@@ -63,10 +54,7 @@ public class ProductController {
     @GetMapping("/listar-chunked")
     public String getChunkedProducts(Model model) {
 
-        Flux<Product> products = dao.findAll().map(product -> {
-            product.setName(product.getName().toUpperCase());
-            return product;
-        }).repeat(5000);
+        Flux<Product> products = service.findAllByNameUpperCaseRepeat();
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", products);
