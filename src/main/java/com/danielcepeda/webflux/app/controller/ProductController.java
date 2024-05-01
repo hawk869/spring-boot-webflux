@@ -7,13 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
+@SessionAttributes("producto")
 @Controller
 public class ProductController {
 
@@ -39,8 +43,18 @@ public class ProductController {
         model.addAttribute("titulo", "Listado de productos");
         return Mono.just("form");
     }
+    @GetMapping("/form/{id}")
+    public Mono<String> editar(@PathVariable String id, Model model) {
+        Mono<Product> productMono = service.findById(id).doOnNext(p -> {
+            log.info("Producto: {}", p.getName());
+        }).defaultIfEmpty(new Product());
+        model.addAttribute("titulo", "Editar Producto");
+        model.addAttribute("producto", productMono);
+        return Mono.just("form");
+    }
     @PostMapping("/form")
-    public Mono<String> guardar(Product product) {
+    public Mono<String> guardar(Product product, SessionStatus status) {
+        status.setComplete();
         return service.save(product).doOnNext(p -> {
             log.info("Producto guardado: {} Id: {}", p.getName(), p.getId());
         }).thenReturn("redirect:/listar");
