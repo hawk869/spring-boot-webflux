@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -22,14 +24,26 @@ public class ProductController {
     }
 
     @GetMapping({"/listar", "/"})
-    public String getProducts(Model model) {
+    public Mono<String> getProducts(Model model) {
 
         Flux<Product> products = service.findAllByNameUpperCase();
         products.subscribe(product -> log.info(product.getName()));
 
         model.addAttribute("productos", products);
         model.addAttribute("titulo", "Listado de productos");
-        return "listar";
+        return Mono.just("listar");
+    }
+    @GetMapping("/form")
+    public Mono<String> craer(Model model) {
+        model.addAttribute("producto", new Product());
+        model.addAttribute("titulo", "Listado de productos");
+        return Mono.just("form");
+    }
+    @PostMapping("/form")
+    public Mono<String> guardar(Product product) {
+        return service.save(product).doOnNext(p -> {
+            log.info("Producto guardado: {} Id: {}", p.getName(), p.getId());
+        }).thenReturn("redirect:/listar");
     }
     @GetMapping("/listar-datadriver")
     public String getDataDriver(Model model) {
